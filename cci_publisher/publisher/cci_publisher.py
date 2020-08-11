@@ -83,6 +83,9 @@ class CCIPublisher():
 
         ids_to_delete = ids_on_disk - {ds.id for ds in dataset_list}
 
+        print(f'Aggregations on disk: {len(ids_on_disk)}')
+        print(f'Aggregations to delete: {len(ids_to_delete)}')
+
         for record in ids_to_delete:
             ds = DRSDataset(record, self.state, self.conf)
             ds.unpublish()

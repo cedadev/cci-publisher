@@ -64,6 +64,13 @@ def get_args():
         help='Do not run the unpublish step'
     )
 
+    parser.add_argument(
+        '--skip-publish',
+        dest='skip_publish',
+        action='store_true',
+        help='Do not run the publish step'
+    )
+
     args = parser.parse_args()
 
     return args
@@ -82,7 +89,8 @@ def main():
     publisher = CCIPublisher(args, datasets, config=conf)
 
     # Generate catalog records and aggregations
-    publisher.publish_datasets()
+    if not args.skip_publish:
+        publisher.publish_datasets()
 
     # Remove unpublished catalog records
     if not args.skip_unpublish:
