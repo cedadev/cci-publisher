@@ -1,0 +1,8 @@
+venv/
+*.egg-info
+ncml_test
+.idea
+__pycache__
+testing_dir
+.vagrant
+*.ini
