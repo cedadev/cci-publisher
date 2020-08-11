@@ -14,6 +14,7 @@ from tqdm import tqdm
 from .drs_dataset import DRSDataset
 import importlib.util
 import subprocess
+import os
 
 
 class CCIPublisher():
@@ -49,7 +50,8 @@ class CCIPublisher():
 
                 # Create lotus job
                 script_path = importlib.util.find_spec('cci_publisher.scripts.aggregate').origin
-                task = f'python {script_path} -d {dataset.id}'
+                script_dir = os.path.dirname(script_path)
+                task = f'{script_dir}/publish_aggregations.sh {script_path} -d {dataset.id}'
 
                 # Add optional flags
                 if self.args.force:
@@ -77,7 +79,7 @@ class CCIPublisher():
         else:
             dataset_list = DRSAggregation(self.conf.get('elasticsearch','collections_index')).get_aggregations()
 
-        ids_on_disk = {file.stem for file in get_all_catalog_files(self.conf.get('output','catalog_dir'))}
+        ids_on_disk = {file.stem for file in get_all_catalog_files(self.conf.get('output','thredds_catalog_repo_path'))}
 
         ids_to_delete = ids_on_disk - {ds.id for ds in dataset_list}
 

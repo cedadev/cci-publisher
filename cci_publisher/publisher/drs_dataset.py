@@ -115,6 +115,8 @@ class DRSDataset:
 
             # Write the catalog file to disk
             write_catalog(catalog, self.catalog_path)
+        else:
+            print('Catalog already exists')
 
     def delete_catalog(self):
         os.remove(self.catalog_path)
