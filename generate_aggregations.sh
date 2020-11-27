@@ -11,3 +11,5 @@ git clone https://breezy.badc.rl.ac.uk/cci-odp/cci_odp_catalog.git
 
 # Set script off to create lotus jobs to generate the aggregations
 python cci_publisher/scripts/publish_aggregations.py --lotus
+
+echo "Use command: squeue --user=$USER to check progress of the scripts"
