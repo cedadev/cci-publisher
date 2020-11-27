@@ -7,7 +7,12 @@ module load jaspy
 pip install git+https://github.com/cedadev/cci_tagger_json.git -U --no-deps
 
 # Clone latest catalog
+rm -rf cci_odp_catalog
 git clone https://breezy.badc.rl.ac.uk/cci-odp/cci_odp_catalog.git
+cd cci_odp_catalog
+git checkout -b issue/`date +"%Y-%m-%d"`
+cd ..
+
 
 # Set script off to create lotus jobs to generate the aggregations
 python cci_publisher/scripts/publish_aggregations.py --lotus
