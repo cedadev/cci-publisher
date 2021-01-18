@@ -70,7 +70,7 @@ class CCIPublisher():
 
     def unpublish_datasets(self):
         """
-        Remove catalog files and aggregation ncml where the dataset
+        Remove catalog files and aggregation NCML where the dataset
         is no longer 'published' as defined by MOLES export tags
         """
 

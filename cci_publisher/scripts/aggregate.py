@@ -23,7 +23,7 @@ def main():
     parser.add_argument('-d', dest='dataset', help='Dataset ID to aggregate')
     parser.add_argument('--wms', action='store_true', help='Boolean to determine whether to generate wms link')
     parser.add_argument('--conf', help='config file', default=os.path.join(base_path, '../config/cci_publisher_config.ini'))
-    parser.add_argument('--force', help='force generation of aggregation even if no state change', default=False)
+    parser.add_argument('--force', action='store_true', help='force generation of aggregation even if no state change')
 
     args = parser.parse_args()
 
