@@ -17,6 +17,7 @@ cd cci_odp_catalog
 git checkout -b catalog/`date +"%Y-%m-%d"`
 cd ..
 
+
 # Set script off to create lotus jobs to generate the aggregations
 echo "Starting script to generate aggregations"
 python cci_publisher/scripts/publish_aggregations.py --lotus
