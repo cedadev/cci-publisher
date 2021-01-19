@@ -57,7 +57,7 @@ def get_all_catalog_files(catalog_dir):
     :return: list of Pathlib paths to catalog records
     """
 
-    path = pathlib.Path(f'{catalog_dir}/data/catalog/datasets/')
+    path = pathlib.Path(f'{catalog_dir}/datasets/')
     return path.glob('esacci*.xml')
 
 
