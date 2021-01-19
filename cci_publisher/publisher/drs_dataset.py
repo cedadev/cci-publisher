@@ -17,6 +17,22 @@ from cci_publisher.utils import write_catalog, get_aggregation_subdir
 
 
 class DRSDataset:
+    """
+    Class for a single dataset. Provides the publish and unpublish interface for
+    a single DRS Dataset
+
+    Attributes:
+        total_files:    int     Total files in the DRS Dataset
+        results:        list    List of files in the DRS Dataset
+        updated:        bool    Has the aggregation been updated
+        id:             str     DRS ID
+        state:          AggregationState
+        force:          bool    Ignore state when deciding to aggreate
+        wms:            bool    Provide WMS access
+        aggregate:      bool    Whether or not to aggregate dataset
+        catalog_path:   str     xml Catalog file path
+        ncml_root:      str     NCML file path
+    """
 
     def __init__(self, dataset_id, state, conf, force=False, wms=False, aggregate=True):
 
@@ -25,24 +41,33 @@ class DRSDataset:
         self.results = []
         self.updated = False
 
+        # helper values
+        self._conf = conf
+        self._builder = CCICatalogBuilder()
+        self._es = CEDAElasticsearchClient(headers={'x-api-key':conf.get('elasticsearch', 'api_key')})
+        self._files_index = self._conf.get('elasticsearch', 'files_index')
+
         # Set main values
         self.id = dataset_id
-        self.conf = conf
-        self.builder = CCICatalogBuilder()
         self.state = state
-        self.es = CEDAElasticsearchClient(headers={'x-api-key':conf.get('elasticsearch','api_key')})
-        self.files_index = self.conf.get('elasticsearch','files_index')
         self.force = force
         self.wms = wms
         self.aggregate = aggregate
 
         # Get processed attributes
-        self.get_file_count()
+        self._get_file_count()
         self._get_state()
-        self.catalog_path = f'{self.conf.get("output", "thredds_catalog_repo_path")}/data/catalog/datasets/{self.id}.xml'
-        self.ncml_root = f'{self.conf.get("output", "thredds_catalog_repo_path")}/data/aggregations/'
+        self.catalog_path = f'{self._conf.get("output", "thredds_catalog_repo_path")}/data/catalog/datasets/{self.id}.xml'
+        self.ncml_root = f'{self._conf.get("output", "thredds_catalog_repo_path")}/data/aggregations/'
 
     def _get_state(self):
+        """
+        Find out if the DRS dataset is different compared to the last run.
+        This avoids re-running compute intesive aggregations for datasets which
+        have not changed
+
+        :return: bool
+        """
         self.updated = self.state.has_updated(
             dataset=self.id,
             file_count=self.total_files,
@@ -51,6 +76,12 @@ class DRSDataset:
         )
 
     def _get_query(self):
+        """
+        Returns the base query
+
+        :return: es base query
+        :rtype: dict
+        """
         return {
             'query': {
                 'bool': {
@@ -72,16 +103,16 @@ class DRSDataset:
             }
         }
 
-    def get_file_count(self):
-        query = self._get_query()
-        self.total_files = self.es.count(index=self.files_index, body=query)['count']
-
-    def get_file_list(self):
+    def _get_file_count(self):
         """
-        Query elasticsearch for all netcdf files which match dataset ID
+        Number of files in the dataset, according to files index
+        """
+        query = self._get_query()
+        self.total_files = self._es.count(index=self._files_index, body=query)['count']
 
-        :param dataset_id:
-        :return:
+    def _get_file_list(self):
+        """
+        Query elasticsearch for all netCDF files which match dataset ID
         """
 
         query = self._get_query()
@@ -91,7 +122,7 @@ class DRSDataset:
             'includes': ['info.directory', 'info.name', 'info.size']
         }
 
-        results = scan(self.es, query=query, index=self.files_index)
+        results = scan(self._es, query=query, index=self._files_index)
 
         self.results = [
             {
@@ -103,25 +134,34 @@ class DRSDataset:
             for result in results
         ]
 
-    def build_catalog(self):
+    def _build_catalog(self):
+        """
+        Build the catalog record
+        """
 
         # If there is a change compared to state store or told to create regardless
         # and > 0 file
         if (self.updated or self.force) and self.total_files:
             # Get the file list to work with
-            self.get_file_list()
+            self._get_file_list()
 
-            catalog = self.builder.dataset_catalog(self.results, ds_id=self.id, opendap=True)
+            catalog = self._builder.dataset_catalog(ds_id=self.id, opendap=True)
 
             # Write the catalog file to disk
             write_catalog(catalog, self.catalog_path)
         else:
             print('Catalog already exists')
 
-    def delete_catalog(self):
+    def _delete_catalog(self):
+        """
+        Delete the catalog record
+        """
         os.remove(self.catalog_path)
 
-    def build_aggregation(self):
+    def _build_aggregation(self):
+        """
+        Build the NCML aggregation
+        """
 
         # There need to be files and the aggregation flag set. Then either there needs to be a change
         # or the force flag is set
@@ -133,8 +173,8 @@ class DRSDataset:
 
             # Prepare the Dataset Object
             xml_dataset = ThreddsXMLDataset(
-                aggregations_dir=self.conf.get('remote', 'aggregations_dir'),
-                thredds_server=self.conf.get('remote', 'thredds_server'),
+                aggregations_dir=self._conf.get('remote', 'aggregations_dir'),
+                thredds_server=self._conf.get('remote', 'thredds_server'),
                 do_wcs=True,
                 netcdf_files=netcdf_files
             )
@@ -148,23 +188,32 @@ class DRSDataset:
             # Write out the changes
             xml_dataset.write(self.catalog_path, agg_dir=self.ncml_root)
 
-    def delete_aggregation(self):
+    def _delete_aggregation(self):
+        """
+        Delete aggregation file
+        """
 
         agg_subdir = get_aggregation_subdir(self.id)
         aggregation_path = os.path.join(self.ncml_root, agg_subdir, f'{self.id}.ncml')
         os.remove(aggregation_path)
 
     def publish(self):
+        """
+        Generate an aggregation for the DRS Dataset
+        """
 
-        self.build_catalog()
+        self._build_catalog()
 
-        self.build_aggregation()
+        self._build_aggregation()
 
         if self.updated:
             self.state.update(self.id, self.total_files, self.aggregate, self.wms)
 
     def unpublish(self):
+        """
+        Remove all associated catalog files for the DRS Dataset
+        """
 
-        self.delete_catalog()
+        self._delete_catalog()
 
-        self.delete_aggregation()
+        self._delete_aggregation()

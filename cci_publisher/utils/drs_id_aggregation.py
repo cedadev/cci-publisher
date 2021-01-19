@@ -14,6 +14,9 @@ import re
 
 
 class DRSAggregationInfo:
+    """
+    Container class to hold and represent the DRS Aggregation information
+    """
     def __init__(self, id, aggregate=True, wms=False):
         self.id = id
         self.aggregate = aggregate
@@ -24,6 +27,9 @@ class DRSAggregationInfo:
 
 
 class DRSAggregation:
+    """
+    Generates a list of DRS IDs from the OpenSearch collections index.
+    """
 
     def __init__(self, index):
         self.es = CEDAElasticsearchClient()
@@ -62,9 +68,19 @@ class DRSAggregation:
         self.dataset_json = DatasetJSONMappings()
 
     def _add_after_key(self, after_key):
+        """
+        Add the search after key to the query
+        https://www.elastic.co/guide/en/elasticsearch/reference/7.10/paginate-search-results.html#search-after
+
+        :param after_key: search_after key
+        :type after_key: str
+        """
         self.query['aggs']['drsid']['composite']['after'] = after_key
 
     def _extract_drs_ids(self):
+        """
+        Extract the DRS IDs from the elasticsearch response
+        """
 
         ids_to_aggregate = []
 
@@ -96,16 +112,24 @@ class DRSAggregation:
         self.drs_ids.extend(ids_to_aggregate)
 
     def _get_page(self):
+        """
+        Get elasticsearch page
+        """
         self.page = self.es.search(index=self.index, body=self.query)
 
     def _scroll_aggregations(self):
+        """
+        Scroll elasticsearch aggregation response
+        """
         self._get_page()
         self._extract_drs_ids()
 
     def get_aggregations(self):
         """
         Get a list of drs identifiers for further processing
-        :return: List of drs_ids
+
+        :return: DRS IDs
+        :rtype: list
         """
 
         # Run first page

@@ -10,10 +10,12 @@ __license__ = 'BSD - see LICENSE file in top-level package directory'
 __contact__ = 'richard.d.smith@stfc.ac.uk'
 
 from cci_publisher.publisher.drs_dataset import DRSDataset
+from cci_publisher.utils import get_state_store
+
 import argparse
 import os
 from configparser import ConfigParser
-from cci_publisher.utils import get_state_store
+
 
 def main():
 
@@ -34,6 +36,7 @@ def main():
 
     ds = DRSDataset(args.dataset, state, conf, force=args.force, wms=args.wms)
     ds.publish()
+
 
 if __name__ == '__main__':
     main()

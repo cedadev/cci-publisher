@@ -12,7 +12,6 @@ from tds_utils.create_catalog import CatalogBuilder, AccessMethod, DatasetRoot, 
 from collections import namedtuple
 import os
 from jinja2 import Environment, PackageLoader
-from enum import Enum
 
 Property = namedtuple('Property', ('name', 'value'))
 Variable = namedtuple('Variable', ['name', 'vocabulary_name', 'units'])
@@ -39,6 +38,13 @@ class CCICatalogBuilder(CatalogBuilder):
         self.env.lstrip_blocks = True
 
     def create_dataset(self, result, file_services):
+        """
+        Not used?
+
+        :param result:
+        :param file_services:
+        :return:
+        """
         this_id = result['name']
 
         # Going from [1:] to remove the first slash
@@ -51,10 +57,19 @@ class CCICatalogBuilder(CatalogBuilder):
 
         return dataset
 
-    def dataset_catalog(self, filenames, ds_id, opendap=False, ncml_path=None):
+    def dataset_catalog(self, ds_id, opendap=False):
         """
-                Build a THREDDS catalog and return the XML as a string
-                """
+        Build a THREDDS catalog and return the XML as a string
+
+        :param ds_id: DRS ID
+        :type ds_id: str
+
+        :param opendap: Whether or not the service is available via opendap
+        :type opendap: bool
+
+        :return: XML string
+        :rtype: string
+        """
         # Work out which services are required
         file_services = {AvailableServices.HTTP.value}
         aggregation = None
@@ -64,15 +79,6 @@ class CCICatalogBuilder(CatalogBuilder):
 
         aggregation_services = {AvailableServices.OPENDAP.value}
         all_services = file_services.copy()
-
-        if ncml_path:
-            all_services.add(AvailableServices.OPENDAP.value)
-            # url path is arbitrary here, but must be the same for each access
-            # method (see note at Aggregation definition...)
-            url_path = ds_id
-            a_meths = [AccessMethod(s, url_path, "NcML")
-                       for s in aggregation_services]
-            aggregation = Aggregation(ncml_path, a_meths, url_path)
 
         context = {
             "services": all_services,
@@ -86,6 +92,13 @@ class CCICatalogBuilder(CatalogBuilder):
         """
         Build a root-level catalog that links to other catalogs, and return the
         XML as a string
+
+        :param cat_paths:
+        :param root_dir:
+        :param name:
+
+        :return: XML String
+        :rtype: str
         """
         catalogs = []
         for path in cat_paths:
