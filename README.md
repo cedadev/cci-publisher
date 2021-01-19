@@ -25,11 +25,11 @@ You will need to provide valid credentials to access gitlab and may need to `chm
 
 ## Post Generation
 
-The aggregations will take a while to complete, some of the larger one will take several hours.
+The aggregations will take a while to complete, some of the larger ones will take several hours.
 Once all the aggregations have completed, you will need to check the changes in the catalog repo 
 (you can use git status or git diff to see what has been changed).
 
-Once you are happy with these changes, run [the script](cci_publisher/scripts/build_root_catalog.py) to build the root catalog.
+Once you are happy with these changes, run [build_root_catalog.py](cci_publisher/scripts/build_root_catalog.py) to build the root catalog.
 
 ```bash
 python cci_publisher/scripts/build_root_catalog.py --catalog-dir cci_odp_catalog/data/catalog

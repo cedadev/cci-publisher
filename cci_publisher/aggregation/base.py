@@ -12,26 +12,57 @@ from tds_utils.aggregation import AggregationCreator, AggregatedGlobalAttr
 ISO_DATE_FORMAT = "%Y%m%dT%H%M%S%Z"
 TZ_CLASS = isodate.tzinfo.Utc
 str_to_date = isodate.parse_datetime
+
+
 def str_to_date(date_str):
-    # Fix some formats known to be in used in CCI data
+    """
+    Fix some formats known to be in used in CCI data
+
+    :param date_str: str
+    :return: datetime
+    """
+
     if re.match("^\d{12}Z$", date_str):
         date_str = "{date}T{time}Z".format(date=date_str[:8], time=date_str[8:12])
 
     try:
         return isodate.parse_datetime(date_str)
+
     except isodate.isoerror.ISO8601Error:
+
         # Try non-ISO format, e.g. '26-DEC-2016 00:00:00.000000'
         dt = datetime.strptime(date_str, "%d-%b-%Y %H:%M:%S.%f")
+
         # Use UTC timezone
         return dt.replace(tzinfo=TZ_CLASS())
 
+
 def date_to_str(dt):
+    """
+    Convert date to isodate format
+    :param dt: datetime
+    :return: str
+    """
     return isodate.datetime_isoformat(dt, format=ISO_DATE_FORMAT)
 
-# Functions to find earliest/latest dates from a list of ISO-format strings
+
 def min_date(dates):
+    """
+    Find the earliest date from a list of iso format date strings
+
+    :param dates: list
+    :return: earliest date in list
+    """
     return date_to_str(min(map(str_to_date, dates)))
+
+
 def max_date(dates):
+    """
+    Fine latest dates from a list of ISO-format strings
+
+    :param dates: list
+    :return: latest date in list
+    """
     return date_to_str(max(map(str_to_date, dates)))
 
 
@@ -42,18 +73,19 @@ def combine_lists(lists):
     e.g. ["one,two", "two,three"] -> "one,two,three"
     """
     unique_items = set([])
+
     for string in lists:
         items = filter(None, map(str.strip, string.split(",")))
         unique_items.update(items)
+
     return ",".join(sorted(unique_items))
 
 
 def unique_strings(strings):
     """
     Find unique strings in the list `strings` and combine them into a single
-    comma-separated string
+    comma-separated string removing whitespace and empty strings
     """
-    # Remove whitespace and empty strings
     return ",".join(sorted(set(filter(None, map(str.strip, strings)))))
 
 
@@ -143,13 +175,17 @@ class CCIAggregationCreator(AggregationCreator):
             date=now.strftime("%Y-%m-%d %H:%M:%S"),
             thredds_url=thredds_url
         )
+
         # Overwrite ID with DRS
         attrs["id"] = drs
+
         # Generate a new tracking ID
         attrs["tracking_id"] = str(uuid4())
+
         # Set date_created to now
         now = datetime.now(tz=TZ_CLASS())
         attrs["date_created"] = isodate.datetime_isoformat(now, format=ISO_DATE_FORMAT)
+
         return attrs
 
     def process_root_element(self, root):

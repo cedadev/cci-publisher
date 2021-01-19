@@ -8,16 +8,34 @@ __copyright__ = 'Copyright 2018 United Kingdom Research and Innovation'
 __license__ = 'BSD - see LICENSE file in top-level package directory'
 __contact__ = 'richard.d.smith@stfc.ac.uk'
 
-from configparser import ConfigParser
 from cci_publisher.utils import DRSAggregation, write_catalog, get_all_catalog_files, get_state_store
-from tqdm import tqdm
 from .drs_dataset import DRSDataset
+
+from configparser import ConfigParser
+from tqdm import tqdm
 import importlib.util
 import subprocess
 import os
 
 
-class CCIPublisher():
+class CCIPublisher:
+    """
+    Pulls together all the information to run the publishing process for CCI
+    aggregations
+
+    Attributes:
+        self.args: command line arguments
+        self.datasets: List of datasets to process
+        self.conf: Parsed config object
+        self.state: StateStore object for interfacing with the state store
+
+    Instance Parameters:
+
+        :arg args: Command line arguments from argparse
+        :arg datasets: List of datasets to process
+        :arg config: Configuration object
+
+    """
 
     def __init__(self, args, datasets, config=None):
         self.args = args

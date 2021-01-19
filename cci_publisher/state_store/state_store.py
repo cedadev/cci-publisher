@@ -1,5 +1,14 @@
 # encoding: utf-8
 """
+Interface to the Elasticsearch State Store. This stores the Aggregation state
+of each of the DRS ids which have been marked for aggregation in the
+https://github.com/cedadev/cci_tagger_json
+
+The state store stores
+- DRS ID
+- Number of files
+- Whether or not to generate an aggregation
+- Whether or not to add WMS capabilities
 
 """
 __author__ = 'Richard Smith'
@@ -36,21 +45,32 @@ class StateStore:
             self.session.indices.create(index=self.index)
 
     @staticmethod
-    def _generate_id(string):
+    def _generate_id(id):
         """
         Convenience method to generate a unique hash per dataset
-        :param string: Input string
-        :return: (Str) sha1 hex
+
+        :param id: Input string
+        :type id: str
+        :return: sha1 hex
+        :rtype: str
         """
-        return hashlib.sha1(string.encode('utf-8')).hexdigest()
+        return hashlib.sha1(id.encode('utf-8')).hexdigest()
 
     def add_row(self, dataset, count, aggregate, wms):
         """
-        Add the specified dataset
-        :param dataset: DRS
-        :param count: Total fiels
+        Add the specified dataset to the state store
+
+        :param dataset: DRS ID
+        :type dataset: str
+
+        :param count: Total files
+        :type count: int
+
         :param aggregate: Boolean
+        :type aggregate: Bool
+
         :param wms: Boolean
+        :type wms: Bool
         """
 
         self.session.index(index=self.index, id=self._generate_id(dataset), body={
@@ -62,8 +82,10 @@ class StateStore:
 
     def delete_row(self, dataset):
         """
-        Delete the specified dataset
+        Delete the specified dataset from the state store
+
         :param dataset: DRS
+        :type dataset: str
         """
         try:
             self.session.delete(index=self.index, id=self._generate_id(dataset))
@@ -72,8 +94,11 @@ class StateStore:
 
     def get_dataset(self, dataset):
         """
-        Get the specified dataset
+        Get the specified dataset from the state store
+
         :param dataset: DRS
+        :type dataset: str
+
         :return: AggregationState | None
         """
 
@@ -88,10 +113,17 @@ class StateStore:
         """
         Check if the details have changed and so we need to run the
         aggregation again.
-        :param dataset: DRS
+
+        :param dataset: DRS ID
+        :type dataset: str
+
         :param file_count: Total files
+        :type file_count: int
+
         :param aggregate: Boolean
+
         :param wms: Boolean
+
         :return: Boolean
         """
         aggregation = self.get_dataset(dataset)
@@ -114,9 +146,15 @@ class StateStore:
     def update(self, dataset, count, aggregate, wms):
         """
         Update details for a given dataset
-        :param dataset: DRS
+
+        :param dataset: DRS ID
+        :type dataset: str
+
         :param count: total files
+        :type count: int
+
         :param aggregate: Boolean
+
         :param wms: Boolean
         """
 
@@ -126,7 +164,9 @@ class StateStore:
     def clear_unused(self, ids_to_remove):
         """
         Clear ids which are no longer active aggregations
-        :param ids_to_remove:
+
+        :param ids_to_remove: List of ids
+        :type ids_to_remove: list
         """
         for id in ids_to_remove:
             self.delete_row(id)

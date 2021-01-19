@@ -41,7 +41,9 @@ def get_aggregation_subdir(id):
     esacci.CLOUD.mon.L3C.CLD_PRODUCTS.multi-sensor.multi-platform.AVHRR-AM.2-0.r1
 
     :param id: XML Dataset or DRS ID
+    :type id: str
     :return: aggregation subdir
+    :rtype: str
     """
     items = id.lstrip('esacci.').rstrip('.xml').split('.')
 
@@ -49,16 +51,24 @@ def get_aggregation_subdir(id):
 
 
 def get_all_catalog_files(catalog_dir):
-        """
-        Get a list of all the generated catalog files
-        :return: list of Pathlib paths to catalog records
-        """
+    """
+    Get a list of all the generated catalog files
 
-        path = pathlib.Path(f'{catalog_dir}/datasets/')
-        return path.glob('esacci*.xml')
+    :return: list of Pathlib paths to catalog records
+    """
+
+    path = pathlib.Path(f'{catalog_dir}/datasets/')
+    return path.glob('esacci*.xml')
 
 
 def get_state_store(config):
+    """
+    Initialise the StateStore
+
+    :param config: ConfigParser config object
+    :return: StateStore instance
+    """
+
     index = config.get('elasticsearch', 'state_index')
     api_key = config.get('elasticsearch', 'api_key')
     return StateStore(index=index, headers={'x-api-key': api_key})
