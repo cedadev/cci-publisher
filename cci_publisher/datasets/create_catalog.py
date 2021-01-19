@@ -13,11 +13,16 @@ from collections import namedtuple
 import os
 from jinja2 import Environment, PackageLoader
 
+
+# Not used?
 Property = namedtuple('Property', ('name', 'value'))
 Variable = namedtuple('Variable', ['name', 'vocabulary_name', 'units'])
 
 
 class Dataset:
+    """
+    Not used?
+    """
 
     def __init__(self, id, name=None, urlpath=None, properties=[], access_methods=[], size=None):
         self.name = name if name else id
@@ -77,7 +82,6 @@ class CCICatalogBuilder(CatalogBuilder):
         if opendap:
             file_services.add(AvailableServices.OPENDAP.value)
 
-        aggregation_services = {AvailableServices.OPENDAP.value}
         all_services = file_services.copy()
 
         context = {
@@ -93,18 +97,26 @@ class CCICatalogBuilder(CatalogBuilder):
         Build a root-level catalog that links to other catalogs, and return the
         XML as a string
 
-        :param cat_paths:
-        :param root_dir:
-        :param name:
+        :param cat_paths: paths to dataset xml records
+        :type cat_paths: list
+
+        :param root_dir: the location of the root catalog.xml
+        :type root_dir: str
+
+        :param name: name of root catalog
+        :type name: str
 
         :return: XML String
         :rtype: str
         """
         catalogs = []
+
         for path in cat_paths:
             cat_name = get_catalog_name(path)
+
             # href must be relative to the root catalog itself
             href = os.path.relpath(path, start=root_dir)
             catalogs.append(CatalogRef(name=cat_name, title=cat_name,
                                        href=href))
+
         return self.render("root_catalog.xml", name=name, catalogs=catalogs)
