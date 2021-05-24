@@ -4,10 +4,16 @@ echo "Loading JASPY"
 module load jaspy
 . venv/bin/activate
 
+# Create slurm errors output
+echo "Creating slurm errors directoru"
+mkdir -p errors
+
 
 # Pull latest CCI JSON Tags
-echo "Installing cci_tagger_json"
-pip install git+https://github.com/cedadev/cci_tagger_json.git -U --no-deps
+echo "Cloning latest cci_tagger_json"
+rm -rf cci_tagger_json
+git clone https://breezy.badc.rl.ac.uk/rsmith013/cci_tagger_json
+export $JSON_TAGGER_ROOT cci_tagger_json
 
 # Clone latest catalog
 echo "Cloning latest catalog"

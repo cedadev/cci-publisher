@@ -1,6 +1,6 @@
 anytree==2.8.0
 cached-property==1.5.1
-git+https://github.com/cedadev/cci_tagger_json
+git+https://github.com/cedadev/json_tagger.git
 git+https://github.com/cedadev/ceda-elasticsearch-tools.git
 certifi==2020.4.5.1
 cftime==1.1.3

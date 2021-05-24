@@ -9,7 +9,7 @@ __license__ = 'BSD - see LICENSE file in top-level package directory'
 __contact__ = 'richard.d.smith@stfc.ac.uk'
 
 from ceda_elasticsearch_tools.elasticsearch import CEDAElasticsearchClient
-from cci_tagger_json import DatasetJSONMappings
+from json_tagger import DatasetJSONMappings
 import re
 
 
@@ -24,7 +24,6 @@ class DRSAggregationInfo:
 
     def __repr__(self):
         return self.id
-
 
 class DRSAggregation:
     """
