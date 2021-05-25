@@ -6,3 +6,4 @@ __pycache__
 testing_dir
 .vagrant
 *.ini
+cci_odp_catalog
