@@ -9,6 +9,16 @@ This repo is to build those aggregations.
 The catalogs are output into a git repo which serves as the source for the CCI THREDDS service. In the containerised
 THREDDS, this repo is used to build the image ready for deployment.
 
+## Installation
+
+This code defaults to run on lotus so can be run on the JASMIN sci machines.
+
+To install:
+1. Clone the repo: `git clone https://github.com/cedadev/cci-publisher`
+2. Change into the repo directory: `cd cci-publisher`
+2. Install the requirements: `pip install -r requirements.txt`
+3. Install the package: `pip install .`
+
 ## Generating Aggregations
 
 For convenience a [wrapper script](generate_aggregations.sh) has been provided but the essential flow is:
