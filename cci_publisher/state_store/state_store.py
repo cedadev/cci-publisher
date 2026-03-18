@@ -11,21 +11,23 @@ The state store stores
 - Whether or not to add WMS capabilities
 
 """
-__author__ = 'Richard Smith'
-__date__ = '05 May 2020'
-__copyright__ = 'Copyright 2018 United Kingdom Research and Innovation'
-__license__ = 'BSD - see LICENSE file in top-level package directory'
-__contact__ = 'richard.d.smith@stfc.ac.uk'
+__author__ = "Richard Smith"
+__date__ = "05 May 2020"
+__copyright__ = "Copyright 2018 United Kingdom Research and Innovation"
+__license__ = "BSD - see LICENSE file in top-level package directory"
+__contact__ = "richard.d.smith@stfc.ac.uk"
 
-from ceda_elasticsearch_tools.elasticsearch import CEDAElasticsearchClient
-import elasticsearch
 import hashlib
+
+from elasticsearch import Elasticsearch
+from elasticsearch import exceptions as es_exceptions
 
 
 class AggregationState:
     """
     Convenience class to handle aggregation state store response
     """
+
     def __init__(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
@@ -36,8 +38,8 @@ class StateStore:
     Interface to the the state store for CCI Aggregations.
     """
 
-    def __init__(self, index, **kwargs):
-        self.session = CEDAElasticsearchClient(**kwargs)
+    def __init__(self, index, host, auth):
+        self.session = Elasticsearch(host, basic_auth=auth)
         self.index = index
 
         # Create and index, if it doesn't exist
@@ -54,7 +56,7 @@ class StateStore:
         :return: sha1 hex
         :rtype: str
         """
-        return hashlib.sha1(id.encode('utf-8')).hexdigest()
+        return hashlib.sha1(id.encode("utf-8")).hexdigest()
 
     def add_row(self, dataset, count, aggregate, wms):
         """
@@ -73,12 +75,16 @@ class StateStore:
         :type wms: Bool
         """
 
-        self.session.index(index=self.index, id=self._generate_id(dataset), body={
-            'id': dataset,
-            'file_count': count,
-            'aggregate': aggregate,
-            'wms': wms
-        })
+        self.session.index(
+            index=self.index,
+            id=self._generate_id(dataset),
+            body={
+                "id": dataset,
+                "file_count": count,
+                "aggregate": aggregate,
+                "wms": wms,
+            },
+        )
 
     def delete_row(self, dataset):
         """
@@ -89,7 +95,7 @@ class StateStore:
         """
         try:
             self.session.delete(index=self.index, id=self._generate_id(dataset))
-        except elasticsearch.exceptions.NotFoundError:
+        except es_exceptions.NotFoundError:
             pass
 
     def get_dataset(self, dataset):
@@ -104,9 +110,9 @@ class StateStore:
 
         try:
             response = self.session.get(index=self.index, id=self._generate_id(dataset))
-            return AggregationState(**response['_source'])
+            return AggregationState(**response["_source"])
 
-        except elasticsearch.exceptions.NotFoundError:
+        except es_exceptions.NotFoundError:
             return None
 
     def has_updated(self, dataset, file_count, aggregate, wms):
@@ -133,11 +139,13 @@ class StateStore:
             return True
 
         # Check all the fields against the store.
-        if not all([
-            aggregation.file_count == file_count,
-            aggregation.aggregate == aggregate,
-            aggregation.wms == wms
-        ]):
+        if not all(
+            [
+                aggregation.file_count == file_count,
+                aggregation.aggregate == aggregate,
+                aggregation.wms == wms,
+            ]
+        ):
             return True
 
         # The dataset is in the table and the fields are unchanged.

@@ -1,19 +1,19 @@
 # encoding: utf-8
-"""
+""" """
+__author__ = "Richard Smith"
+__date__ = "13 Mar 2020"
+__copyright__ = "Copyright 2018 United Kingdom Research and Innovation"
+__license__ = "BSD - see LICENSE file in top-level package directory"
+__contact__ = "richard.d.smith@stfc.ac.uk"
 
-"""
-__author__ = 'Richard Smith'
-__date__ = '13 Mar 2020'
-__copyright__ = 'Copyright 2018 United Kingdom Research and Innovation'
-__license__ = 'BSD - see LICENSE file in top-level package directory'
-__contact__ = 'richard.d.smith@stfc.ac.uk'
-
-from ceda_elasticsearch_tools.elasticsearch import CEDAElasticsearchClient
-from elasticsearch.helpers import scan
-from cci_publisher.datasets import ThreddsXMLDataset
 import os
+
+from elasticsearch import Elasticsearch
+from elasticsearch.helpers import scan
+
+from cci_publisher.datasets import ThreddsXMLDataset
 from cci_publisher.datasets.create_catalog import CCICatalogBuilder
-from cci_publisher.utils import write_catalog, get_aggregation_subdir
+from cci_publisher.utils import get_aggregation_subdir, write_catalog
 
 
 class DRSDataset:
@@ -44,8 +44,14 @@ class DRSDataset:
         # helper values
         self._conf = conf
         self._builder = CCICatalogBuilder()
-        self._es = CEDAElasticsearchClient(headers={'x-api-key':conf.get('elasticsearch', 'api_key')})
-        self._files_index = self._conf.get('elasticsearch', 'files_index')
+        self._es = Elasticsearch(
+            self._conf.get("elasticsearch", "host"),
+            basic_auth=(
+                self._conf.get("elasticsearch", "username"),
+                self._conf.get("elasticsearch", "password"),
+            ),
+        )
+        self._files_index = self._conf.get("elasticsearch", "files_index")
 
         # Set main values
         self.id = dataset_id
@@ -72,7 +78,7 @@ class DRSDataset:
             dataset=self.id,
             file_count=self.total_files,
             aggregate=self.aggregate,
-            wms=self.wms
+            wms=self.wms,
         )
 
     def _get_query(self):
@@ -83,21 +89,11 @@ class DRSDataset:
         :rtype: dict
         """
         return {
-            'query': {
-                'bool': {
-                    'must': [
-                        {
-                            'term': {
-                                'projects.opensearch.drsId.keyword': self.id
-                            }
-                        },
-                        {
-                            'term': {
-                                'info.format.keyword': {
-                                    'value': 'NetCDF'
-                                }
-                            }
-                        }
+            "query": {
+                "bool": {
+                    "must": [
+                        {"term": {"projects.opensearch.drsId.keyword": self.id}},
+                        {"term": {"info.format.keyword": {"value": "NetCDF"}}},
                     ]
                 }
             }
@@ -108,7 +104,7 @@ class DRSDataset:
         Number of files in the dataset, according to files index
         """
         query = self._get_query()
-        self.total_files = self._es.count(index=self._files_index, body=query)['count']
+        self.total_files = self._es.count(index=self._files_index, body=query)["count"]
 
     def _get_file_list(self):
         """
@@ -118,18 +114,15 @@ class DRSDataset:
         query = self._get_query()
 
         # Reduce data sent back in scan
-        query['_source'] = {
-            'includes': ['info.directory', 'info.name', 'info.size']
-        }
+        query["_source"] = {"includes": ["info.directory", "info.name", "info.size"]}
 
         results = scan(self._es, query=query, index=self._files_index)
 
         self.results = [
             {
-                'directory': result['_source']['info']['directory'],
-                'name': result['_source']['info']['name'],
-                'size': result['_source']['info']['size']
-
+                "directory": result["_source"]["info"]["directory"],
+                "name": result["_source"]["info"]["name"],
+                "size": result["_source"]["info"]["size"],
             }
             for result in results
         ]
@@ -150,7 +143,7 @@ class DRSDataset:
             # Write the catalog file to disk
             write_catalog(catalog, self.catalog_path)
         else:
-            print('Catalog already exists')
+            print("Catalog already exists")
 
     def _delete_catalog(self):
         """
@@ -167,16 +160,16 @@ class DRSDataset:
         # or the force flag is set
         if all([self.aggregate, self.total_files]) and (self.updated or self.force):
             netcdf_files = [
-                os.path.join(result['directory'], result['name'])
+                os.path.join(result["directory"], result["name"])
                 for result in self.results
             ]
 
             # Prepare the Dataset Object
             xml_dataset = ThreddsXMLDataset(
-                aggregations_dir=self._conf.get('remote', 'aggregations_dir'),
-                thredds_server=self._conf.get('remote', 'thredds_server'),
+                aggregations_dir=self._conf.get("remote", "aggregations_dir"),
+                thredds_server=self._conf.get("remote", "thredds_server"),
                 do_wcs=True,
-                netcdf_files=netcdf_files
+                netcdf_files=netcdf_files,
             )
 
             # Read in the catalog file to modify
@@ -194,7 +187,7 @@ class DRSDataset:
         """
 
         agg_subdir = get_aggregation_subdir(self.id)
-        aggregation_path = os.path.join(self.ncml_root, agg_subdir, f'{self.id}.ncml')
+        aggregation_path = os.path.join(self.ncml_root, agg_subdir, f"{self.id}.ncml")
         os.remove(aggregation_path)
 
     def publish(self):

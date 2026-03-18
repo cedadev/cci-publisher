@@ -1,18 +1,18 @@
 # encoding: utf-8
-"""
+""" """
+__author__ = "Richard Smith"
+__date__ = "10 Mar 2020"
+__copyright__ = "Copyright 2018 United Kingdom Research and Innovation"
+__license__ = "BSD - see LICENSE file in top-level package directory"
+__contact__ = "richard.d.smith@stfc.ac.uk"
 
-"""
-__author__ = 'Richard Smith'
-__date__ = '10 Mar 2020'
-__copyright__ = 'Copyright 2018 United Kingdom Research and Innovation'
-__license__ = 'BSD - see LICENSE file in top-level package directory'
-__contact__ = 'richard.d.smith@stfc.ac.uk'
+import argparse
+import os
+import pathlib
 
 from cci_publisher.state_store.state_store import StateStore
-import argparse
-import pathlib
+
 from .drs_id_aggregation import DRSAggregation, DRSAggregationInfo
-import os
 
 
 def write_catalog(catalog, output_path):
@@ -20,7 +20,7 @@ def write_catalog(catalog, output_path):
     Write the catalog XML to disk
     """
 
-    with open(output_path, 'w') as writer:
+    with open(output_path, "w") as writer:
         writer.write(catalog)
 
 
@@ -45,7 +45,7 @@ def get_aggregation_subdir(id):
     :return: aggregation subdir
     :rtype: str
     """
-    items = id.lstrip('esacci.').rstrip('.xml').split('.')
+    items = id.lstrip("esacci.").rstrip(".xml").split(".")
 
     return os.path.join(*items)
 
@@ -57,8 +57,8 @@ def get_all_catalog_files(catalog_dir):
     :return: list of Pathlib paths to catalog records
     """
 
-    path = pathlib.Path(f'{catalog_dir}/datasets/')
-    return path.glob('esacci*.xml')
+    path = pathlib.Path(f"{catalog_dir}/datasets/")
+    return path.glob("esacci*.xml")
 
 
 def get_state_store(config):
@@ -69,6 +69,11 @@ def get_state_store(config):
     :return: StateStore instance
     """
 
-    index = config.get('elasticsearch', 'state_index')
-    api_key = config.get('elasticsearch', 'api_key')
-    return StateStore(index=index, headers={'x-api-key': api_key})
+    return StateStore(
+        index=config.get("elasticsearch", "state_index"),
+        host=config.get("elasticsearch", "host"),
+        auth=(
+            config.get("elasticsearch", "username"),
+            config.get("elasticsearch", "password"),
+        ),
+    )
