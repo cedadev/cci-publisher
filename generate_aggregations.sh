@@ -2,7 +2,7 @@
 # Start the virtual environment
 echo "Loading JASPY"
 module load jaspy
-. venv/bin/activate
+. venv2/bin/activate
 
 # Create slurm errors output
 echo "Creating slurm errors directoru"
@@ -13,7 +13,7 @@ echo
 # Pull latest CCI JSON Tags
 echo "Cloning latest cci_tagger_json"
 rm -rf cci_tagger_json
-git clone https://breezy.badc.rl.ac.uk/rsmith013/cci_tagger_json
+git clone git@gitlab.ceda.ac.uk:cedadev/cci_tagger_json.git
 
 echo
 export JSON_TAGGER_ROOT="cci_tagger_json"
@@ -23,7 +23,7 @@ echo
 # Clone latest catalog
 echo "Cloning latest catalog"
 rm -rf cci_odp_catalog
-git clone https://breezy.badc.rl.ac.uk/cci-odp/cci_odp_catalog.git
+git clone git@gitlab.ceda.ac.uk:cci-odp/cci_odp_catalog.git
 cd cci_odp_catalog
 git checkout -b catalog/`date +"%Y-%m-%d"`
 cd ..
