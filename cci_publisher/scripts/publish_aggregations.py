@@ -80,10 +80,13 @@ def main():
     conf = ConfigParser()
     conf.read(args.config)
 
+
     if args.datasets == "all":
         datasets = DRSAggregation(
             conf.get("elasticsearch", "collections_index"),
             conf.get("elasticsearch", "host"),
+            conf.get("elasticsearch", "username"),
+            conf.get("elasticsearch", "password")
         ).get_aggregations()
     else:
         datasets = [DRSAggregationInfo(ds, wms=args.wms) for ds in args.datasets]

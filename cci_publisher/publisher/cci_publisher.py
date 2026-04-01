@@ -51,7 +51,7 @@ class CCIPublisher:
         if not config:
             self._parse_config()
 
-        self.state = get_state_store(self.conf)
+        self.state = get_state_store(config=self.conf)
 
         print(f"Total Datasets to process: {len(self.datasets)}")
 
@@ -72,11 +72,18 @@ class CCIPublisher:
             if self.args.lotus:
 
                 # Create lotus job
-                script_path = importlib.util.find_spec(
-                    "cci_publisher.scripts.aggregate"
-                ).origin
+                #script_path = importlib.util.find_spec(
+                #    "cci_publisher.scripts.aggregate"
+                #).origin
+                #script_dir = os.path.dirname(script_path)
+                #task = f"{script_dir}/publish_aggregations.sh {script_path} -d {dataset.id}"
+
+                 
+                script_path = os.getcwd()+'/cci_publisher/scripts/aggregate.py'
                 script_dir = os.path.dirname(script_path)
-                task = f"{script_dir}/publish_aggregations.sh {script_path} -d {dataset.id}"
+                task = f'{script_dir}/publish_aggregations.sh {script_path} -d {dataset.id}'
+
+
 
                 # Add optional flags
                 if self.args.force:
@@ -85,7 +92,8 @@ class CCIPublisher:
                     task = f"{task} --wms"
 
                 # Submit job
-                command = f"sbatch --time 24:00:00 -e errors/{dataset.id}.err {task}"
+                command = f"sbatch --time 24:00:00 --partition=standard --qos=standard --account=esacci_portal -e errors/{dataset.id}.err {task}"
+                #command = f"sbatch --time 24:00:00 -e errors/{dataset.id}.err {task}"
                 print(command)
                 subprocess.call(command, shell=True)
 
@@ -108,9 +116,11 @@ class CCIPublisher:
         if self.args.datasets == "all":
             dataset_list = self.datasets
         else:
-            dataset_list = DRSAggregation(
+            dataset_list = DRSAggregation( 
                 self.conf.get("elasticsearch", "collections_index"),
                 self.conf.get("elasticsearch", "host"),
+                self.conf.get("elasticsearch", "username"),
+                self.conf.get("elasticsearch", "password")
             ).get_aggregations()
 
         ids_on_disk = {

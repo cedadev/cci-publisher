@@ -74,6 +74,6 @@ def get_state_store(config):
         host=config.get("elasticsearch", "host"),
         auth=(
             config.get("elasticsearch", "username"),
-            config.get("elasticsearch", "password"),
+            config.get("elasticsearch", "password")
         ),
     )

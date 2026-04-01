@@ -2,7 +2,7 @@ anytree==2.8.0
 cached-property==1.5.1
 git+https://github.com/cedadev/json_tagger.git
 certifi==2020.4.5.1
-cftime==1.1.3
+cftime
 chardet==3.0.4
 ceda-directory-tree==1.0.2
 docopt==0.6.2
@@ -11,9 +11,9 @@ idna==2.6
 isodate==0.6.0
 Jinja2==2.11.2
 MarkupSafe==1.1.1
-netCDF4==1.5.3
-numpy==1.18.4
-requests==2.20.0
+netCDF4
+numpy==2.0.2
+requests
 git+https://github.com/cedadev/tds-utils/
 tqdm==4.46.0
-urllib3==1.24.2
+urllib3

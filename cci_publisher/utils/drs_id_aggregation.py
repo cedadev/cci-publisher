@@ -33,8 +33,8 @@ class DRSAggregation:
     Generates a list of DRS IDs from the OpenSearch collections index.
     """
 
-    def __init__(self, index, host):
-        self.es = Elasticsearch(host)
+    def __init__(self, index, host,username,password):
+        self.es = Elasticsearch(host,basic_auth=(username,password))
         self.query = {
             "query": {"term": {"is_published": "true"}},
             "size": 0,
@@ -100,6 +100,8 @@ class DRSAggregation:
         """
         Get elasticsearch page
         """
+        print(self.index)
+        print(self.query)
         self.page = self.es.search(index=self.index, body=self.query)
 
     def _scroll_aggregations(self):

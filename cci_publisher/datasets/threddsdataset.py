@@ -99,7 +99,9 @@ class ThreddsXMLBase(object):
         Add a child element, if possible putting it before another child with the same tag
         """
         new_tag = self.tag_base_name(new_child.tag)
-        for i, child in enumerate(parent.getchildren()):
+        print(parent)
+        #for i, child in enumerate(parent.getchildren()):
+        for i,child in enumerate(parent):
             if not self.tag_base_name_is(child, new_tag):
                 parent.insert(i, new_child)
                 break
@@ -147,7 +149,8 @@ class ThreddsXMLDataset(ThreddsXMLBase):
 
     @cached_property
     def top_level_dataset(self):
-        for child in self.root.getchildren():
+        #for child in self.root.getchildren():
+        for child in self.root:
             if self.tag_base_name_is(child, "dataset"):
                 return child
 
@@ -305,11 +308,14 @@ class ThreddsXMLDataset(ThreddsXMLBase):
 
         agg_xml = ThreddsXMLBase()
         agg_xml.set_root(agg_element)
+        
+        print(agg_xml)
 
         agg_basename = f"{self.dataset_id}.ncml"
         self.aggregation = AggregationInfo(xml_element=agg_xml,
                                            basename=agg_basename,
                                            sub_dir=sub_dir)
+        print(self.aggregation)
 
         # Create a 'netcdf' element in the catalog that points to the file containing the
         # aggregation

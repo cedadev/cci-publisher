@@ -43,7 +43,7 @@ class StateStore:
         self.index = index
 
         # Create and index, if it doesn't exist
-        if not self.session.indices.exists(self.index):
+        if not self.session.indices.exists(index=self.index):
             self.session.indices.create(index=self.index)
 
     @staticmethod
